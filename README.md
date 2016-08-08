@@ -5,8 +5,10 @@ WordPress Import for Large Blogger Export Files
 This is a work in progress. It does not fully work yet, but works well enough for me as a developer. 
 
 ##No Free Support
-If you are a developer too and it helps you, great. But no (free) support.  If you want to submit a pull 
-request so it can get better, please do that.
+If you are a developer too and it helps you, great. But no (free) support.  
+
+##Pull Requests Accepted
+If you want to submit a pull request so it can get better, please do that.
 
 ##Paid Import Service
 If you are an end-user or designer and you desperately need to get your large blogger file imported 
