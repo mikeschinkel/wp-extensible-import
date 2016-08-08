@@ -39,7 +39,7 @@
 <div class="wrap">
 	<h1><?php _e( 'Large Blogger Import', 'wplbi' ); ?></h1>
 	<?php settings_errors(); ?>
-	<form method="post" action="options.php">
+	<form method="post" action="<?php echo esc_url( $_SERVER[ 'REQUEST_URI' ] ); ?>">
 		<?php
 			settings_fields( 'wplbi_settings' );
 			do_settings_sections( 'large-blogger-import' );

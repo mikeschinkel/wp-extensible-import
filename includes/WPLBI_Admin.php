@@ -40,6 +40,7 @@ class WPLBI_Admin {
 			$filepath = wplbi()->get_local_filepath_from_url( $attachment->guid );
 
 			if ( ! wplbi()->verify_atom_xml( $filepath ) ) {
+				$html = "The uploaded file is not a valid Blogger Export file.";
 				break;
 			}
 
