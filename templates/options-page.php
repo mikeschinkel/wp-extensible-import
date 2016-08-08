@@ -39,10 +39,10 @@
 <div class="wrap">
 	<h1><?php _e( 'Large Blogger Import', 'wplbi' ); ?></h1>
 	<?php settings_errors(); ?>
-	<form method="post" action="<?php echo esc_url( $_SERVER[ 'REQUEST_URI' ] ); ?>">
+	<form method="post" action="<?php echo wplbi()->postback_url() ?>">
 		<?php
 			settings_fields( 'wplbi_settings' );
-			do_settings_sections( 'large-blogger-import' );
+			do_settings_sections( WPLBI::PAGE_NAME );
 			echo '<p class="submit">';
 			submit_button( __( 'Save Changes', 'wplbi' ), 'primary', 'submit', false );
 			submit_button( __( 'Import Blogger Posts', 'wplbi' ), 'secondary', 'blogger-import', false );

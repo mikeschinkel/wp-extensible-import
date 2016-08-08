@@ -1,14 +1,11 @@
 jQuery( function($) {
     jQuery("#blogger-import").click(function($event){
         $event.preventDefault();
+        alert( 'This does not work yet.' );
         $.ajax({
             url: ajaxurl,
             type: 'POST',
-            data: {
-                param0: $('#textbox0').val(),
-                param1: $('#textbox1').val(),
-                param2: $('#textbox2').val()
-            }
+            data: {}
         });
     });
 

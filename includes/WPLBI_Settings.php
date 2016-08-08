@@ -5,8 +5,6 @@
  */
 class WPLBI_Settings extends WPLBI_Base {
 
-	const SETTINGS_NAME = 'wplbi_settings';
-
 	/**
 	 * @return string
 	 */
@@ -31,7 +29,7 @@ class WPLBI_Settings extends WPLBI_Base {
 			$settings = $this->load_settings();
 		}
 
-		if ( ! $settings ) {
+		if ( is_array( $settings ) ) {
 			$this->assign( $settings );
 		}
 
@@ -42,7 +40,7 @@ class WPLBI_Settings extends WPLBI_Base {
 	 */
 	function load_settings() {
 
-		return get_option( self::SETTINGS_NAME );
+		return (array) get_option( WPLBI::SETTINGS_NAME );
 
 	}
 
@@ -50,7 +48,14 @@ class WPLBI_Settings extends WPLBI_Base {
 	 */
 	function save_settings() {
 
-		return update_option( self::SETTINGS_NAME, (array) $this );
+		$settings = (array) $this;
+		unset( $settings['extra'] );
+
+		foreach( $settings as $field_name => $value ) {
+			$settings[$field_name] = sanitize_option( $field_name, $value );
+		}
+
+		return update_option( WPLBI::SETTINGS_NAME, $settings );
 
 	}
 

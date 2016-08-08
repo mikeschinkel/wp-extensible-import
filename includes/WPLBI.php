@@ -5,6 +5,10 @@
  */
 class WPLBI {
 
+	const SETTINGS_NAME = 'wplbi_settings';
+
+	const PAGE_NAME = 'large-blogger-import';
+
 	const TABLE_NAME = 'large_blogger_import';
 
 	const INSIDE_IMPORT_KEY = 'wplbi_inside_import';
@@ -53,6 +57,50 @@ class WPLBI {
 
 		add_action( 'admin_enqueue_scripts', array( $this, '_admin_enqueue_scripts' ) );
 		add_action( 'admin_print_styles', array( $this, '_admin_print_styles' ) );
+		add_action( 'load-tools_page_' . self::PAGE_NAME, array( $this, '_load_tools_page' ) );
+
+	}
+
+	/**
+	 *
+	 */
+	function _load_tools_page() {
+
+		do {
+			if ( empty( $_POST[ self::SETTINGS_NAME ] ) ) {
+				break;
+			}
+
+			if ( empty( $_POST[ '_wp_http_referer' ] ) ) {
+				break;
+			}
+
+			$referer = 'wp-admin/tools.php?page=' . self::PAGE_NAME;
+
+			if ( false === strpos( $_POST[ '_wp_http_referer' ], $referer ) ) {
+				break;
+			}
+
+			if ( empty( $_POST[ 'action' ] ) ) {
+				break;
+			}
+
+			if ( 'update' !== $_POST[ 'action' ] ) {
+				break;
+			}
+
+			if ( empty( $_POST[ 'option_page' ] ) ) {
+				break;
+			}
+
+			check_admin_referer( "{$_POST[ 'option_page' ]}-options" );
+
+			$settings = new WPLBI_Settings( $_POST[ self::SETTINGS_NAME ] );
+
+			$settings->save_settings();
+
+		} while ( false );
+
 	}
 
 	function get_entry_count() {
@@ -328,6 +376,17 @@ SQL;
 		return $is_atom;
 
 	}
+
+	/**
+	 * @return string
+	 */
+	function postback_url() {
+
+		//return esc_url( site_url( '/wp-admin/options.php?page=' . self::SETTINGS_NAME ) );
+		return esc_url( $_SERVER['REQUEST_URI'] );
+
+	}
+
 
 }
 

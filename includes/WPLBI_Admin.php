@@ -18,16 +18,15 @@ class WPLBI_Admin {
 		add_action( 'admin_init', array( $this, '_admin_init' ) );
 		//add_action( 'wp_check_filetype_and_ext', array( $this, '_wp_check_filetype_and_ext' ), 10, 4 );
 		add_action( 'upload_mimes', array( $this, '_upload_mimes' ) );
-		add_action( 'media_send_to_editor', array( $this, '_media_send_to_editor' ), 10, 3 );
+		add_action( 'media_send_to_editor', array( $this, '_media_send_to_editor' ), 10, 2 );
 	}
 
 	/**
 	 * @param string $html       HTML markup for a media item sent to the editor.
 	 * @param int    $send_id    The first key from the $_POST['send'] data.
-	 * @param array  $attachment Array of attachment metadata.
 	 * @return string
 	 */
-	function _media_send_to_editor( $html, $send_id, $attachment ) {
+	function _media_send_to_editor( $html, $send_id ) {
 
 		do {
 
@@ -79,10 +78,10 @@ class WPLBI_Admin {
 	function _admin_init() {
 
 		add_settings_section(
-			'wplbi_import_details',
+			WPLBI::SETTINGS_NAME,
 			__( 'Import Parameters', 'wplbi' ),
 			array( $this, '_section_header' ),
-			'large-blogger-import'
+			WPLBI::PAGE_NAME
 		);
 
 		$this->add_settings_field( 'wp_author_id', __( 'WP Author ID for Posts:', 'wplbi' ) );
@@ -91,11 +90,6 @@ class WPLBI_Admin {
 
 		$this->add_settings_field( 'blogger_author_url', __( 'Author\'s Blogger URL:', 'wplbi' ) );
 
-		register_setting(
-			'large-blogger-import',
-			'export_file_url',
-			array( $this, '_validate' )
-		);
 
 	}
 
@@ -104,16 +98,30 @@ class WPLBI_Admin {
 			$field_name,
 			$label,
 			array( $this, '_section_option' ),
-			'large-blogger-import',
-			'wplbi_import_details',
+			WPLBI::PAGE_NAME,
+			WPLBI::SETTINGS_NAME,
 			$field_name
+		);
+		register_setting(
+			WPLBI::SETTINGS_NAME,
+			$field_name,
+			array( $this, '_sanitize' )
 		);
 	}
 
 	/**
 	 *
 	 */
-	function _validate( $value ) {
+	function _sanitize( $value, $field_name ) {
+		switch ( $field_name ) {
+			case 'export_file_url':
+			case 'blogger_author_url':
+				$value = esc_url( $value );
+				break;
+			case 'wp_author_id':
+				$value = intval( $value );
+				break;
+		}
 		return $value;
 	}
 
