@@ -15,11 +15,15 @@ class WPLBI_Settings extends WPLBI_Base {
 	 */
 	public $wp_author_id;
 
-
 	/**
 	 * @return string
 	 */
 	public $blogger_author_url;
+
+	/**
+	 * @return string
+	 */
+	public $entry_count;
 
 	/**
 	 * @return mixed|void
@@ -45,16 +49,38 @@ class WPLBI_Settings extends WPLBI_Base {
 	}
 
 	/**
+	 * @return array
+	 */
+	function settings() {
+		global $wp_settings_fields;
+		$settings = array_intersect_key(
+			(array) $this,
+			$wp_settings_fields[ WPLBI::PAGE_NAME ][ WPLBI::SETTINGS_NAME ]
+		);
+		return $settings;
+	}
+
+	/**
+	 * @return array
+	 */
+	function update_settings( $settings ) {
+		$this->assign( $this->load_settings() );
+		$this->assign( $settings );
+		$this->save_settings();
+	}
+
+	/**
 	 */
 	function save_settings() {
-
-		$settings = (array) $this;
-		unset( $settings['extra'] );
-
-		foreach( $settings as $field_name => $value ) {
-			$settings[$field_name] = sanitize_option( $field_name, $value );
+		global $wp_filter;
+		$save_filter = $wp_filter;
+		$function = array( wplbi()->admin(), '_sanitize' );
+		foreach( $settings = $this->settings() as $field_name => $value ) {
+			wplbi()->change_accepted_args( 2, "sanitize_option_{$field_name}", $function );
+			$settings[ $field_name ] = sanitize_option( $field_name, $value );
 		}
 
+		$wp_filter = $save_filter;
 		return update_option( WPLBI::SETTINGS_NAME, $settings );
 
 	}

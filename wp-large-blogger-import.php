@@ -31,10 +31,7 @@ function wplbi_autoloader( $class_name ) {
  */
 function wplbi() {
 	static $wplbi;
-	if ( ! isset( $wplbi ) ) {
-		$wplbi = new WPLBI( __DIR__ );
-	}
-	return $wplbi;
+	return isset( $wplbi ) ? $wplbi : ( $wplbi = new WPLBI( __DIR__ ) );
 }
 wplbi();
 

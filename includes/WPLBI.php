@@ -29,6 +29,11 @@ class WPLBI {
 	public $plugin_dir;
 
 	/**
+	 * @var string
+	 */
+	private $plugin_url;
+
+	/**
 	 * @var WPLBI_Admin
 	 */
 	private $_admin;
@@ -47,6 +52,7 @@ class WPLBI {
 
 		$this->plugin_name = __( 'Large Blogger Import', 'wplbi' );
 		$this->plugin_dir = $plugin_dir;
+		$this->plugin_url = plugin_dir_url( "{$plugin_dir}/x" );
 
 		register_activation_hook( __FILE__, array( $this, 'activate' ) );
 
@@ -58,6 +64,7 @@ class WPLBI {
 		add_action( 'admin_enqueue_scripts', array( $this, '_admin_enqueue_scripts' ) );
 		add_action( 'admin_print_styles', array( $this, '_admin_print_styles' ) );
 		add_action( 'load-tools_page_' . self::PAGE_NAME, array( $this, '_load_tools_page' ) );
+
 
 	}
 
@@ -103,10 +110,11 @@ class WPLBI {
 
 	}
 
-	function get_entry_count() {
+	function entry_count() {
 		$reader      = new XMLReader;
-		$entry_count = 0;
+		$entry_count = null;
 		if ( is_file( $xml_file = $this->export_filepath() ) ) {
+			$entry_count = 0;
 			$reader->open( $xml_file );
 			while ( $reader->read() && $reader->name !== 'entry' ) {
 				;
@@ -124,6 +132,7 @@ class WPLBI {
 	 */
 	function _admin_print_styles() {
 		wp_enqueue_style('thickbox');
+		wp_enqueue_style( 'wplbi-style', "{$this->plugin_url}/assets/css/wplbi-admin.css",array(),null );
 	}
 
 	/**
@@ -132,9 +141,9 @@ class WPLBI {
 	function _admin_enqueue_scripts() {
 		wp_enqueue_script('media-upload');
 		wp_enqueue_script('thickbox');
-		wp_enqueue_script( 'wplbi-script', plugin_dir_url( "{$this->plugin_dir}/x" ) . 'assets/js/wplbi-admin.js',array(),null,true );
+		wp_enqueue_script( 'wplbi-script', "{$this->plugin_url}/assets/js/wplbi-admin.js",array(),null,true );
 		wp_localize_script( 'wplbi-script', 'WPLBI', array(
-			'entry_count' => $this->get_entry_count()
+			'entry_count' => $this->entry_count()
 		));
 
 	}
@@ -386,6 +395,46 @@ SQL;
 		return esc_url( $_SERVER['REQUEST_URI'] );
 
 	}
+
+	/**
+	 * Changes the accepted args of hooks that are added by other code.
+	 *
+	 * @param int $accepted_args
+	 * @param string $filter
+	 * @param callable $callback
+	 * @param int $priority
+	 *
+	 * @return array
+	 */
+	function change_accepted_args( $accepted_args, $filter, $callback, $priority = 10 ) {
+		global $wp_filter;
+
+		foreach( $wp_filter[ $filter ][ $priority ] as $index => $function ) {
+
+			if ( is_string( $function ) ) {
+				if ( $callback === $function ) {
+					$wp_filter[ $filter ][ $priority ][ $index ]['accepted_args'] = $accepted_args;
+					break;
+				}
+			} else if ( is_array( $function ) ) {
+				$function = $function['function'];
+				if ( $callback[0] === $function[0] && $callback[1] === $function[1] ) {
+					$wp_filter[ $filter ][ $priority ][ $index ]['accepted_args'] = $accepted_args;
+					break;
+				}
+			}
+
+		}
+
+	}
+
+	/**
+	 * @return WPLBI_Admin
+	 */
+	function admin() {
+		return $this->_admin;
+	}
+
 
 
 }

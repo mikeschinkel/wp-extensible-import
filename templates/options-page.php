@@ -43,9 +43,14 @@
 		<?php
 			settings_fields( 'wplbi_settings' );
 			do_settings_sections( WPLBI::PAGE_NAME );
+
+		?>
+		<div id="export_file_info" style="display:none;"></div>
+       <?php
 			echo '<p class="submit">';
 			submit_button( __( 'Save Changes', 'wplbi' ), 'primary', 'submit', false );
-			submit_button( __( 'Import Blogger Posts', 'wplbi' ), 'secondary', 'blogger-import', false );
+			submit_button( __( 'Veryify Export File', 'wplbi' ), 'secondary', 'verify_export', false );
+			submit_button( __( 'Import Blogger Posts', 'wplbi' ), 'secondary', 'blogger_import', false );
 			echo '</p>';
 		?>
 		<div id="progress-bars">
