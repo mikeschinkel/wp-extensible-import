@@ -18,6 +18,11 @@ class WPLBI_Settings extends WPLBI_Base {
 	/**
 	 * @return string
 	 */
+	public $blogger_blog_url;
+
+	/**
+	 * @return string
+	 */
 	public $blogger_author_url;
 
 	/**
@@ -75,8 +80,10 @@ class WPLBI_Settings extends WPLBI_Base {
 		global $wp_filter;
 		$save_filter = $wp_filter;
 		$function = array( wplbi()->admin(), '_sanitize' );
-		foreach( $settings = $this->settings() as $field_name => $value ) {
-			wplbi()->change_accepted_args( 2, "sanitize_option_{$field_name}", $function );
+		foreach( $settings = (array) $this as $field_name => $value ) {
+			if ( has_filter( "sanitize_option_{$field_name}", $function ) ) {
+				wplbi()->change_accepted_args( 2, "sanitize_option_{$field_name}", $function );
+			}
 			$settings[ $field_name ] = sanitize_option( $field_name, $value );
 		}
 

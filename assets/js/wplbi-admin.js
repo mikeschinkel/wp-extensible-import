@@ -1,5 +1,6 @@
 jQuery( function($) {
     $("#verify_export").on("click",function($event){
+        $event.preventDefault();
         var exportUrl = $("#export_file_url").val();
         $(".verified-info-row").css("display","table-row");
 
@@ -15,28 +16,42 @@ jQuery( function($) {
                 if ("error"==data.result) {
                     alert(data.message);
                 } else {
-                    $("#entry-count").text(data.entryCount.toLocaleString());
-                    var link = $("<a/>")
+                    $("#blogger-author-url").html($("<a/>")
                         .attr("href",data.bloggerAuthorUrl)
                         .attr("target","_blank")
-                        .html(data.bloggerAuthorUrl);
-                    $("#bloger-author-url").html(link);
+                        .html(data.bloggerAuthorUrl)
+                    );
+                    $("#blogger-blog-url").html($("<a/>")
+                        .attr("href",data.bloggerBlogUrl)
+                        .attr("target","_blank")
+                        .html(data.bloggerBlogUrl)
+                    );
+                    $("#entry-count").text(data.entryCount.toLocaleString());
                 }
 
             }
         });
-
-        $event.preventDefault();
-
     });
 
-    $("#blogger_import").click(function($event){
+    $("#import_content").click(function($event){
         $event.preventDefault();
-        alert( 'This does not work yet.' );
+        var exportUrl = $("#export_file_url").val();
         $.ajax({
             url: ajaxurl,
             type: 'POST',
-            data: {}
+            dataType: "json",
+            data: {
+                "action":"import_content",
+                "export_url": exportUrl
+            },
+            success: function(data){
+                if ("error"==data.result) {
+                    alert(data.message);
+                } else {
+                    alert(data.message);
+                }
+
+            }
         });
     });
 

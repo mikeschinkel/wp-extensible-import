@@ -50,7 +50,7 @@
 			echo '<p class="submit">';
 			submit_button( __( 'Save Changes', 'wplbi' ), 'primary', 'submit', false );
 			submit_button( __( 'Veryify Export File', 'wplbi' ), 'secondary', 'verify_export', false );
-			submit_button( __( 'Import Blogger Posts', 'wplbi' ), 'secondary', 'blogger_import', false );
+			submit_button( __( 'Import Content', 'wplbi' ), 'secondary', 'blogger_import', false );
 			echo '</p>';
 		?>
 		<div id="progress-bars">

@@ -56,10 +56,8 @@ class WPLBI {
 
 		register_activation_hook( __FILE__, array( $this, 'activate' ) );
 
-		if ( is_admin() ) {
-			$this->_admin = new WPLBI_Admin();
-			$this->_settings = new WPLBI_Settings();
-		}
+		$this->_admin = new WPLBI_Admin();
+		$this->_settings = new WPLBI_Settings();
 
 		add_action( 'admin_enqueue_scripts', array( $this, '_admin_enqueue_scripts' ) );
 		add_action( 'admin_print_styles', array( $this, '_admin_print_styles' ) );

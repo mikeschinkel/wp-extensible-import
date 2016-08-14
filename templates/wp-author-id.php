@@ -13,6 +13,22 @@ wp_dropdown_users( array(
 ));
 ?>
 </td></tr>
+<tr id="blogger-author-url-row" class="verified-info-row" style="display:none;">
+	<th scope="row"><?php _e( 'Author URL:', 'wplbi' ); ?></th>
+	<td>
+		<span id="blogger-author-url" style="display:inline;" class="verified-info">
+			<span class="spinner is-active" style="float:left;">
+		</span>
+	</td>
+</tr>
+<tr id="blogger-blog-url-row" class="verified-info-row" style="display:none;">
+	<th scope="row"><?php _e( 'Blog URL:', 'wplbi' ); ?></th>
+	<td>
+		<span id="blogger-blog-url" style="display:inline;" class="verified-info">
+			<span class="spinner is-active" style="float:left;">
+		</span>
+	</td>
+</tr>
 <tr id="entry-count-row" class="verified-info-row" style="display:none;">
 	<th scope="row"><?php _e( 'Entry Count:', 'wplbi' ); ?></th>
 	<td>
@@ -20,11 +36,3 @@ wp_dropdown_users( array(
 			<span class="spinner is-active"></span>
 		</span>
 		<span class="wplbi-info"><?php _e( "Entry count equals the sum of posts plus the sum of comments." ); ?></span>
-	</td>
-</tr>
-<tr id="bloger-author-url-row" class="verified-info-row" style="display:none;">
-	<th scope="row"><?php _e( 'Author URL:', 'wplbi' ); ?></th>
-	<td>
-		<span id="bloger-author-url" style="display:inline;" class="verified-info">
-			<span class="spinner is-active" style="float:left;">
-		</span>

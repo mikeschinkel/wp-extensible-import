@@ -10,7 +10,7 @@
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
-spl_autoload_register( 'wplbi_autoloader' );
+spl_autoload_register( 'wplbi_autoloader', true, true );
 function wplbi_autoloader( $class_name ) {
 	if ( is_file( $filepath = __DIR__ . "/includes/{$class_name}.php" ) ) {
 		require( $filepath );

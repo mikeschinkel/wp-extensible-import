@@ -7,7 +7,20 @@ class WPLBI_Import {
 
 	public $post_ids = array();
 
-	function parse_blogger( $xml_file ) {
+	/**
+	 * @param $xml_file
+	 */
+	function import_content( $xml_file ) {
+		$result = array(
+			'post'    => (object) array(
+				'imported'    => 0,
+				'post_errors' => 0,
+			),
+			'comment' => (object) array(
+				'imported'    => 0,
+				'post_errors' => 0,
+			),
+		);
 
 		$reader = new XMLReader;
 
@@ -15,15 +28,19 @@ class WPLBI_Import {
 
 		while ($reader->read() && $reader->name !== 'entry' );
 
-		$rows_imported = $this->rows_imported();
+		$entries_imported = $this->entries_imported();
+		$result[ 'post' ]->imported = $entries_imported['post'];
+		$result[ 'comment' ]->imported = $entries_imported['comment'];
+		$entries_imported = intval( $entries_imported['post'] ) + intval( $entries_imported['comment'] );
+
 		while ( 'entry' === $reader->name ) {
-			if ( 0 === $rows_imported -- ) {
+			if ( 0 === $entries_imported-- ) {
 				break;
 			}
 			$reader->next( 'entry' );
 		}
-
-		while ( 'entry' === $reader->name ) {
+		$counter = 0;
+		while ( 'entry' === $reader->name && $counter < 1000 ) {
 
 			do {
 
@@ -42,7 +59,7 @@ class WPLBI_Import {
 
 				if ( empty( $entry->entry_id ) ) break;
 
-				switch ( wplbi()->parse_kind( $entry->category ) ) {
+				switch ( $kind = wplbi()->parse_kind( $entry->category ) ) {
 
 					case null:
 						break;
@@ -63,31 +80,44 @@ class WPLBI_Import {
 
 				}
 
-				$this->record_entry( $entry );
+				if ( ! is_wp_error( $item_id = $this->import_entry( $entry ) ) ) {
+					$result[ $kind ]->imported++;
+				} else {
+					$result[ $kind ]->errors++;
+				};
 
 			} while ( false );
 
 			$reader->next('entry');
 		}
 
+		return $result;
+
 	}
 
 	/**
 	 * @return int
 	 */
-	private function rows_imported() {
+	private function entries_imported() {
 		global $wpdb;
 		$table_name = wplbi()->import_table_name();
-		return $wpdb->get_var( "SELECT COUNT(*) FROM {$table_name}" );
+		$results = $wpdb->get_results( "SELECT entry_type, type_count AS COUNT(*) FROM {$table_name} GROUP BY entry_type" );
+		$entries_imported = array();
+		foreach( $results as $result ) {
+			$entries_imported[ $result->entry_type ] = $results->type_count;
+		}
+		return $entries_imported;
+
 	}
 
 	/**
 	 * @param WPLBI_Post|WPLBI_Comment $entry
+	 * @return int
 	 */
-	private function record_entry( $entry ) {
+	private function import_entry( $entry ) {
 		global $wpdb;
 		$entry_type = $entry instanceof WPLBI_Post ? 'post' : 'comment';
-		$wpdb->insert( wplbi()->import_table_name(), array(
+		return $wpdb->insert( wplbi()->import_table_name(), array(
 			'entry_type' => $entry_type,
 			'blogger_id' => 'post' === $entry_type ? $entry->post_id :  $entry->comment_id,
 			'json' => $entry->to_json(),

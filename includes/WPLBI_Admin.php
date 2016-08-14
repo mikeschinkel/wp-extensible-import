@@ -20,12 +20,49 @@ class WPLBI_Admin {
 		add_action( 'upload_mimes', array( $this, '_upload_mimes' ) );
 		add_action( 'media_send_to_editor', array( $this, '_media_send_to_editor' ), 10, 2 );
 
-		if ( is_admin() ) {
-			$this->_settings = new WPLBI_Settings();
-		}
+		$this->_settings = new WPLBI_Settings();
 
 		add_action( 'wp_ajax_verify_export', array( $this, '_wp_ajax_verify_export' ) );
 	}
+
+	/**
+	 *
+	 */
+	function _wp_ajax_import_content() {
+
+		$export_url = esc_url_raw( $_POST[ 'export_url' ], array( 'http','https' ) );
+		if ( trim( $this->_settings->export_file_url ) !== trim( $export_url ) ) {
+			$result = array(
+				'result' => 'error',
+				'message' => __( 'Export file not yet verified', 'wplbi' ),
+			);
+
+		} else {
+
+			$this->import_content();
+
+			$result = array(
+				'result'           => 'success',
+				'entryCount'       => $entry_count,
+				'bloggerBlogUrl'   => $blogger_blog_url,
+				'bloggerAuthorUrl' => $blogger_author_url,
+			);
+
+		}
+		echo json_encode( $result );
+		die();
+
+	}
+
+
+	/**
+	 *
+	 */
+	function import_content() {
+		$importer = new WPLBI_Import();
+		return $importer->import_content( wplbi()->export_filepath() );
+	}
+
 
 	/**
 	 *
@@ -43,14 +80,19 @@ class WPLBI_Admin {
 
 		} else {
 
+			$blogger_blog_url = $this->blogger_blog_url();
+			$blogger_author_url = $this->blogger_author_url();
+
 			$this->_settings->update_settings( array(
-				'entry_count'        => $entry_count = wplbi()->entry_count(),
+				'entry_count'        => $entry_count,
+				'blogger_blog_url'   => $blogger_blog_url = $this->blogger_blog_url(),
 				'blogger_author_url' => $blogger_author_url = $this->blogger_author_url(),
-			) );
+			));
 
 			$result = array(
 				'result'           => 'success',
 				'entryCount'       => $entry_count,
+				'bloggerBlogUrl'   => $blogger_blog_url,
 				'bloggerAuthorUrl' => $blogger_author_url,
 			);
 
@@ -58,6 +100,54 @@ class WPLBI_Admin {
 		echo json_encode( $result );
 		die();
 
+	}
+
+	/**
+	 * @return string|null
+	 */
+	function blogger_blog_url() {
+		$reader = new XMLReader;
+		$blog_url = null;
+		if ( is_file( $xml_file = wplbi()->export_filepath() ) ) {
+			$reader->open( $xml_file );
+			while ( $reader->read() ) {
+				if ( 'link' !== $reader->name ) {
+					continue;
+				}
+				if ( 'alternate' !== $reader->getAttributeNo( 0 ) ) {
+					continue;
+				}
+				$blog_url = $reader->getAttribute( 'href' );
+				break;
+			}
+		}
+		return $blog_url;
+	}
+
+	/**
+	 * @return string|null
+	 */
+	function blogger_blog_subdomain() {
+		$reader = new XMLReader;
+		$blog_subdomain = null;
+		if ( is_file( $xml_file = wplbi()->export_filepath() ) ) {
+			$reader->open( $xml_file );
+			while ( $reader->read() ) {
+				$value = $reader->value;
+				if ( false !== strpos( $value, '.settings.BLOG_SUBDOMAIN' ) ) {
+					break;
+				}
+			}
+			while ( $reader->read() ) {
+				if ( 'content' !== $reader->name ) {
+					continue;
+				}
+				$reader->read();
+				$blog_subdomain = (string) $reader->value;
+				break;
+			}
+		}
+		return $blog_subdomain;
 	}
 
 	function blogger_author_url() {
