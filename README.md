@@ -1,5 +1,5 @@
-# wp-large-blogger-import
-WordPress Import for Large Blogger Export Files
+# WordPress Extensible Import 
+WordPress Extensible Import, especially for Large Export Files such as from Blogger.
 
 #Status
 This is a work in progress. It does not fully work yet, but works well enough for me as a developer. 
