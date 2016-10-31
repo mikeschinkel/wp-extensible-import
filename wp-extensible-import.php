@@ -10,9 +10,15 @@
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
-spl_autoload_register( 'wplbi_autoloader', true, true );
-function wplbi_autoloader( $class_name ) {
+spl_autoload_register( 'wpei_autoloader', true, true );
+function wpei_autoloader( $class_name ) {
 	if ( is_file( $filepath = __DIR__ . "/includes/{$class_name}.php" ) ) {
+		require( $filepath );
+	}
+	/**
+	 * @TODO Make this generic
+	 */
+	if ( is_file( $filepath = __DIR__ . "/importers/blogger/{$class_name}.php" ) ) {
 		require( $filepath );
 	}
 }
@@ -27,13 +33,13 @@ function wplbi_autoloader( $class_name ) {
  *
  * @since    1.0.0
  *
- * @return WPLBI
+ * @return WPEI
  */
-function wplbi() {
-	static $wplbi;
-	return isset( $wplbi ) ? $wplbi : ( $wplbi = new WPLBI( __DIR__ ) );
+function wpei() {
+	static $wpei;
+	return isset( $wpei ) ? $wpei : ( $wpei = new WPEI( __DIR__ ) );
 }
-wplbi();
+wpei();
 
 
 

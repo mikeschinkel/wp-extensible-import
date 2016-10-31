@@ -37,24 +37,24 @@
 #progress-bars, #entry-count, #row-count {display: none};
 </style>
 <div class="wrap">
-	<h1><?php _e( 'Large Blogger Import', 'wplbi' ); ?></h1>
+	<h1><?php _e( 'Extensible Import', 'wpei' ); ?></h1>
 	<?php settings_errors(); ?>
-	<form method="post" action="<?php echo wplbi()->postback_url() ?>">
+	<form method="post" action="<?php echo wpei()->postback_url() ?>">
 		<?php
-			settings_fields( 'wplbi_settings' );
-			do_settings_sections( WPLBI::PAGE_NAME );
+			settings_fields( 'wpei_settings' );
+			do_settings_sections( WPEI::PAGE_NAME );
 
 		?>
-		<div id="export_file_info" style="display:none;"></div>
+		<div id="import_file_info" style="display:none;"></div>
        <?php
 			echo '<p class="submit">';
-			submit_button( __( 'Save Changes', 'wplbi' ), 'primary', 'submit', false );
-			submit_button( __( 'Veryify Export File', 'wplbi' ), 'secondary', 'verify_export', false );
-			submit_button( __( 'Import Content', 'wplbi' ), 'secondary', 'blogger_import', false );
+			submit_button( __( 'Save Changes', 'wpei' ), 'primary', 'submit', false );
+			submit_button( __( 'Veryify Import File', 'wpei' ), 'secondary', 'verify_import', false );
+			submit_button( __( 'Import Content', 'wpei' ), 'secondary', 'blogger_import', false );
 			echo '</p>';
 		?>
 		<div id="progress-bars">
-			<h2>Blogger Export File Parsing <span id="entry-count">[]</span>:</h2>
+			<h2>Blogger Import File Parsing <span id="entry-count">[]</span>:</h2>
 			<div id="parser-progress-bar" class="progress-bar"><span></span></div>
 			<h2>Content Importing <span id="row-count">[]</span>:</h2>
 			<div id="importer-progress-bar"  class="progress-bar"><span></span></div>

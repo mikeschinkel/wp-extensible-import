@@ -1,6 +1,6 @@
 <?php
 
-class WPLBI_Post extends WPLBI_Base {
+class WPEI_Post extends WPEI_Base {
 
 	/**
 	 * @var int
@@ -63,7 +63,7 @@ class WPLBI_Post extends WPLBI_Base {
 	public $is_valid = false;
 
 	/**
-	 * WPLBI_Post constructor.
+	 * WPEI_Post constructor.
 	 *
 	 * @param stdClass|string $post XML post to be parsed or pre-parsed JSON string
 	 */
@@ -94,11 +94,11 @@ class WPLBI_Post extends WPLBI_Base {
 			
 			$this->assign( $post );
 
-			$this->original_url = wplbi()->parse_url( $this->link );
+			$this->original_url = wpei()->parse_url( $this->link );
 
 			$this->category     = $this->parse_categories( $this->category );
 
-			$this->author    = wplbi()->default_author();
+			$this->author    = wpei()->default_author();
 			
 		} while ( false );
 
@@ -161,10 +161,10 @@ class WPLBI_Post extends WPLBI_Base {
 	function insert_args() {
 		return array(
 			'post_author'           => $this->author,
-			'post_date'             => wplbi()->format_date( $this->published ),
-			'post_date_gmt'         => wplbi()->format_date_gmt( $this->published ),
-			'post_modified'         => wplbi()->format_date( $this->updated ),
-			'post_modified_gmt'     => wplbi()->format_date_gmt( $this->updated ),
+			'post_date'             => wpei()->format_date( $this->published ),
+			'post_date_gmt'         => wpei()->format_date_gmt( $this->published ),
+			'post_modified'         => wpei()->format_date( $this->updated ),
+			'post_modified_gmt'     => wpei()->format_date_gmt( $this->updated ),
 			'post_content'          => $this->content,
 			'post_content_filtered' => wp_kses_post( $this->content ),
 			'post_title'            => $this->title,
@@ -190,7 +190,7 @@ class WPLBI_Post extends WPLBI_Base {
 			wp_set_post_categories( $post_id, $categories );
 		}
 
-		update_post_meta( $post_id, 'blogger_id', $this->ID );
+		update_post_meta( $post_id, 'blogger_id', $this->blog_id );
 		update_post_meta( $post_id, 'blogger_url', $this->original_url );
 
 	}

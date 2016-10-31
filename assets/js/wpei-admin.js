@@ -1,7 +1,7 @@
 jQuery( function($) {
-    $("#verify_export").on("click",function($event){
+    $("#verify_import").on("click",function($event){
         $event.preventDefault();
-        var exportUrl = $("#export_file_url").val();
+        var importUrl = $("#import_file_url").val();
         $(".verified-info-row").css("display","table-row");
 
         $.ajax({
@@ -9,8 +9,8 @@ jQuery( function($) {
             type: 'post',
             dataType: "json",
             data: {
-                "action":"verify_export",
-                "export_url": exportUrl
+                "action":"verify_import",
+                "import_url": importUrl
             },
             success: function(data){
                 if ("error"==data.result) {
@@ -35,14 +35,14 @@ jQuery( function($) {
 
     $("#import_content").click(function($event){
         $event.preventDefault();
-        var exportUrl = $("#export_file_url").val();
+        var importUrl = $("#import_file_url").val();
         $.ajax({
             url: ajaxurl,
             type: 'POST',
             dataType: "json",
             data: {
                 "action":"import_content",
-                "export_url": exportUrl
+                "import_url": importUrl
             },
             success: function(data){
                 if ("error"==data.result) {
@@ -55,9 +55,9 @@ jQuery( function($) {
         });
     });
 
-    $("#upload-export").on("click", function() {
-        window.send_to_editor = function(exportUrl) {
-            $("#export_file_url").val(exportUrl);
+    $("#upload-import").on("click", function() {
+        window.send_to_editor = function(importUrl) {
+            $("#import_file_url").val(importUrl);
             tb_remove();
         };
         tb_show('', 'media-upload.php?type=file&TB_iframe=true');

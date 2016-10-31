@@ -1,14 +1,15 @@
 <?php
 
 /**
- * Class WP_Large_Blogger_Import
+ * Class WPEI_Import
  */
-class WPLBI_Import {
+class WPEI_Import {
 
 	public $post_ids = array();
 
 	/**
-	 * @param $xml_file
+	 * @param string $xml_file
+	 * @return array
 	 */
 	function import_content( $xml_file ) {
 		$result = array(
@@ -55,24 +56,24 @@ class WPLBI_Import {
 
 				if ( empty( $entry->id  ) ) break;
 
-				list( $entry->blog_id, $entry->entry_id ) = wplbi()->parse_id( $entry->id );
+				list( $entry->blog_id, $entry->entry_id ) = wpei()->parse_id( $entry->id );
 
 				if ( empty( $entry->entry_id ) ) break;
 
-				switch ( $kind = wplbi()->parse_kind( $entry->category ) ) {
+				switch ( $kind = wpei()->parse_kind( $entry->category ) ) {
 
 					case null:
 						break;
 
 					case 'post':
-						$entry = new WPLBI_Post( $entry );
+						$entry = new WPEI_Post( $entry );
 						if ( ! $entry->is_valid ) {
 							continue;
 						}
 						break;
 
 					case 'comment':
-						$entry = new WPLBI_Comment( $entry );
+						$entry = new WPEI_Comment( $entry );
 						break;
 
 					default;
@@ -96,11 +97,11 @@ class WPLBI_Import {
 	}
 
 	/**
-	 * @return int
+	 * @return int[]
 	 */
 	private function entries_imported() {
 		global $wpdb;
-		$table_name = wplbi()->import_table_name();
+		$table_name = wpei()->import_table_name();
 		$results = $wpdb->get_results( "SELECT entry_type, type_count AS COUNT(*) FROM {$table_name} GROUP BY entry_type" );
 		$entries_imported = array();
 		foreach( $results as $result ) {
@@ -111,13 +112,13 @@ class WPLBI_Import {
 	}
 
 	/**
-	 * @param WPLBI_Post|WPLBI_Comment $entry
+	 * @param WPEI_Post|WPEI_Comment $entry
 	 * @return int
 	 */
 	private function import_entry( $entry ) {
 		global $wpdb;
-		$entry_type = $entry instanceof WPLBI_Post ? 'post' : 'comment';
-		return $wpdb->insert( wplbi()->import_table_name(), array(
+		$entry_type = $entry instanceof WPEI_Post ? 'post' : 'comment';
+		return $wpdb->insert( wpei()->import_table_name(), array(
 			'entry_type' => $entry_type,
 			'blogger_id' => 'post' === $entry_type ? $entry->post_id :  $entry->comment_id,
 			'json' => $entry->to_json(),
@@ -127,7 +128,7 @@ class WPLBI_Import {
 
 	private function check_off_entry( $entry_id, $entry_type, $wp_id ) {
 		global $wpdb;
-		$wpdb->update( wplbi()->import_table_name(), array(
+		$wpdb->update( wpei()->import_table_name(), array(
 			'wp_entry_id' => $wp_id,
 		), array(
 			'blogger_id' => $entry_id,
@@ -138,10 +139,10 @@ class WPLBI_Import {
 
 	function clean_db() {
 		global $wpdb;
-		$inside_import  = get_option( WPLBI::INSIDE_IMPORT_KEY, date( DATE_ATOM ) );
+		$inside_import  = get_option( WPEI::INSIDE_IMPORT_KEY, date( DATE_ATOM ) );
 		if ( ! $inside_import ) {
-			foreach ( WPLBI::AFFECTED_TABLES as $pk_field => $table ) {
-				$table_name = wplbi()->import_table_name();
+			foreach ( WPEI::AFFECTED_TABLES as $pk_field => $table ) {
+				$table_name = wpei()->import_table_name();
 				switch ( $table ) {
 					case 'terms':
 					case 'term_taxonomy':
@@ -153,7 +154,7 @@ class WPLBI_Import {
 				}
 				$wpdb->query( $sql );
 			}
-			update_option( WPLBI::INSIDE_IMPORT_KEY, date( DATE_ATOM ) );
+			update_option( WPEI::INSIDE_IMPORT_KEY, date( DATE_ATOM ) );
 		}
 	}
 
@@ -163,7 +164,7 @@ class WPLBI_Import {
 	 */
 	function update_import( $import_id, $wp_id ) {
 		global $wpdb;
-		$wpdb->update( wplbi()->import_table_name(), array(
+		$wpdb->update( wpei()->import_table_name(), array(
 			'wp_id' => $wp_id,
 		), array(
 			'import_id' => $import_id
@@ -171,10 +172,10 @@ class WPLBI_Import {
 	}
 
 	/**
-	 * @return WPLBI_DB_Cursor
+	 * @return WPEI_DB_Cursor
 	 */
 	function get_db_cursor() {
-		return new WPLBI_DB_Cursor( wplbi()->import_table_name(), array(
+		return new WPEI_DB_Cursor( wpei()->import_table_name(), array(
 			'where'   => 'wp_id IS NULL',
 			'orderby' => 'entry_type DESC, blogger_id ASC',
 		));
@@ -197,12 +198,12 @@ class WPLBI_Import {
 
 				switch ( $row->entry_type ) {
 					case 'post':
-						$post = new WPLBI_Post( $entry );
+						$post = new WPEI_Post( $entry );
 						$wp_id = $post->insert_post();
 						break;
 
 					case 'comment':
-						$comment = new WPLBI_Comment( $entry );
+						$comment = new WPEI_Comment( $entry );
 						$wp_id = $comment->insert_comment();
 						break;
 

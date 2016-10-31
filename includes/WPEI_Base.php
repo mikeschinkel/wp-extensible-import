@@ -1,7 +1,13 @@
 <?php
 
-class WPLBI_Base {
+class WPEI_Base {
 	public $extra = array();
+
+	/**
+	 * @param string $properties
+	 *
+	 * @return self
+	 */
 	function assign( $properties ) {
 		if ( ! is_array( $properties ) ) {
 			$properties = array();
@@ -13,6 +19,7 @@ class WPLBI_Base {
 				$this->extra[ $property ] = $value;
 			}
 		}
+		return $this;
 	}
 	/**
 	 * @return array

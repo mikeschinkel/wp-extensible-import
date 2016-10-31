@@ -1,17 +1,17 @@
 <?php
 
 /**
- * Class WPLBI
+ * Class WPEI
  */
-class WPLBI {
+class WPEI {
 
-	const SETTINGS_NAME = 'wplbi_settings';
+	const SETTINGS_NAME = 'wpei_settings';
 
-	const PAGE_NAME = 'large-blogger-import';
+	const PAGE_NAME = 'extensible-import';
 
-	const TABLE_NAME = 'large_blogger_import';
+	const TABLE_NAME = 'extensible_import';
 
-	const INSIDE_IMPORT_KEY = 'wplbi_inside_import';
+	const INSIDE_IMPORT_KEY = 'wpei_inside_import';
 
 	const AFFECTED_TABLES = array(
 		'posts',
@@ -34,35 +34,44 @@ class WPLBI {
 	private $plugin_url;
 
 	/**
-	 * @var WPLBI_Admin
+	 * @var WPEI_Admin
 	 */
 	private $_admin;
 
 	/**
-	 * @var WPLBI_Settings
+	 * @var WPEI_Settings
 	 */
 	private $_settings;
 
 	/**
-	 * WPLBI constructor.
+	 * @var WPEI_Importer_Base
+	 */
+	private $_importer;
+
+	/**
+	 * WPEI constructor.
 	 *
 	 * @param string $plugin_dir
 	 */
 	function __construct( $plugin_dir ) {
 
-		$this->plugin_name = __( 'Large Blogger Import', 'wplbi' );
+		$this->plugin_name = __( 'Extensible Import', 'wpei' );
 		$this->plugin_dir = $plugin_dir;
 		$this->plugin_url = plugin_dir_url( "{$plugin_dir}/x" );
 
 		register_activation_hook( __FILE__, array( $this, 'activate' ) );
 
-		$this->_admin = new WPLBI_Admin();
-		$this->_settings = new WPLBI_Settings();
+		$this->_admin = new WPEI_Admin();
+		$this->_settings = WPEI_Settings::get_instance();
+
+		/**
+		 * @TODO Handle this with factory
+		 */
+		$this->_importer = WPEI_Blogger_Importer::get_instance();
 
 		add_action( 'admin_enqueue_scripts', array( $this, '_admin_enqueue_scripts' ) );
 		add_action( 'admin_print_styles', array( $this, '_admin_print_styles' ) );
 		add_action( 'load-tools_page_' . self::PAGE_NAME, array( $this, '_load_tools_page' ) );
-
 
 	}
 
@@ -100,7 +109,9 @@ class WPLBI {
 
 			check_admin_referer( "{$_POST[ 'option_page' ]}-options" );
 
-			$settings = new WPLBI_Settings( $_POST[ self::SETTINGS_NAME ] );
+			$settings = WPEI_Settings::get_instance();
+
+			$settings->assign( $_POST[ self::SETTINGS_NAME ] );
 
 			$settings->save_settings();
 
@@ -109,20 +120,10 @@ class WPLBI {
 	}
 
 	function entry_count() {
-		$reader      = new XMLReader;
-		$entry_count = null;
-		if ( is_file( $xml_file = $this->export_filepath() ) ) {
-			$entry_count = 0;
-			$reader->open( $xml_file );
-			while ( $reader->read() && $reader->name !== 'entry' ) {
-				;
-			}
-			while ( 'entry' === $reader->name ) {
-				$entry_count ++;
-				$reader->next( 'entry' );
-			}
-		}
-		return $entry_count;
+
+		return isset( $this->_importer )
+			? $this->_importer->entry_count()
+			: 0;
 	}
 
 	/**
@@ -130,7 +131,7 @@ class WPLBI {
 	 */
 	function _admin_print_styles() {
 		wp_enqueue_style('thickbox');
-		wp_enqueue_style( 'wplbi-style', "{$this->plugin_url}/assets/css/wplbi-admin.css",array(),null );
+		wp_enqueue_style( 'wpei-style', "{$this->plugin_url}/assets/css/wpei-admin.css",array(),null );
 	}
 
 	/**
@@ -139,8 +140,8 @@ class WPLBI {
 	function _admin_enqueue_scripts() {
 		wp_enqueue_script('media-upload');
 		wp_enqueue_script('thickbox');
-		wp_enqueue_script( 'wplbi-script', "{$this->plugin_url}/assets/js/wplbi-admin.js",array(),null,true );
-		wp_localize_script( 'wplbi-script', 'WPLBI', array(
+		wp_enqueue_script( 'wpei-script', "{$this->plugin_url}/assets/js/wpei-admin.js",array(),null,true );
+		wp_localize_script( 'wpei-script', 'WPEI', array(
 			'entry_count' => $this->entry_count()
 		));
 
@@ -174,7 +175,7 @@ class WPLBI {
 
 	}
 
-	function get_local_filepath_from_url( $url ) {
+	function get_filepath_from_url( $url ) {
 
 		$regex = '#^' . preg_quote( home_url() ) . '(.*)$#';
 		if ( ! preg_match( $regex,  $url , $match ) ) {
@@ -190,21 +191,21 @@ class WPLBI {
 	/**
 	 * @return string
 	 */
-	function export_filepath() {
-		return $this->get_local_filepath_from_url( $this->export_file_url() );
+	function import_filepath() {
+		return $this->get_filepath_from_url( $this->import_file_url() );
 	}
 
 	/**
 	 * @return string
 	 */
-	function export_file_url() {
-		return $this->_settings->export_file_url;
+	function import_file_url() {
+		return $this->_settings->import_file_url;
 	}
 
 	/**
 	 * @return string
 	 */
-	function author_uri() {
+	function blogger_author_uri() {
 		return $this->_settings->blogger_author_url;
 	}
 
@@ -345,43 +346,7 @@ SQL;
 	 */
 	function import_table_name() {
 		global $wpdb;
-		return $wpdb->prefix . WPLBI::TABLE_NAME;
-	}
-
-	/**
-	 * @param string $filepath
-	 *
-	 * @return bool|int
-	 */
-	function verify_atom_xml( $filepath ) {
-		do {
-
-			$is_atom = false;
-
-			if ( ! is_file( $filepath ) ) {
-				break;
-			}
-
-			if ( false === (  $handle = fopen( $filepath, 'r' ) ) ) {
-				break;
-			}
-
-			if ( false === ( $xml_head = fgets( $handle, 2048 ) ) ) {
-				break;
-			}
-
-			fclose( $handle );
-
-			if ( 0 !== strpos( $xml_head, "<?xml version='1.0' encoding='UTF-8'?>" ) ) {
-				break;
-			}
-
-			$is_atom  = preg_match( "#\<feed xmlns='http://www.w3.org/2005/Atom'#", $xml_head );
-
-		} while ( false );
-
-		return $is_atom;
-
+		return $wpdb->prefix . WPEI::TABLE_NAME;
 	}
 
 	/**
@@ -401,8 +366,6 @@ SQL;
 	 * @param string $filter
 	 * @param callable $callback
 	 * @param int $priority
-	 *
-	 * @return array
 	 */
 	function change_accepted_args( $accepted_args, $filter, $callback, $priority = 10 ) {
 		global $wp_filter;
@@ -427,7 +390,7 @@ SQL;
 	}
 
 	/**
-	 * @return WPLBI_Admin
+	 * @return WPEI_Admin
 	 */
 	function admin() {
 		return $this->_admin;

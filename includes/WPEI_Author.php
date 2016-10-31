@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Class WPLBI_Author
+ * Class WPEI_Author
  */
-class WPLBI_Author {
+class WPEI_Author {
 
 	/**
 	 * @var string

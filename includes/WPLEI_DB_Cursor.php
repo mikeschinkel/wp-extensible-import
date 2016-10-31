@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Class WPLBI_DB_Cursor
+ * Class WPEI_DB_Cursor
  */
-class WPLBI_DB_Cursor extends WPLBI_Base{
+class WPEI_DB_Cursor extends WPEI_Base{
 
 	public $table_name;
 
@@ -18,7 +18,7 @@ class WPLBI_DB_Cursor extends WPLBI_Base{
 	public $cursor_size = 100;
 
 	/**
-	 * WPLBI_DB_Cursor constructor.
+	 * WPEI_DB_Cursor constructor.
 	 *
 	 * @param string $table_name
 	 * @param array $args {

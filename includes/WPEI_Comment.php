@@ -1,6 +1,6 @@
 <?php
 
-class WPLBI_Comment extends WPLBI_Base {
+class WPEI_Comment extends WPEI_Base {
 
 	public $blogger_id;
 	public $blog_id;
@@ -12,7 +12,7 @@ class WPLBI_Comment extends WPLBI_Base {
 	public $original_url;
 
 	/**
-	 * WPLBI_Comment constructor.
+	 * WPEI_Comment constructor.
 	 *
 	 * @param stdClass|string $comment XML post to be parsed or pre-parsed JSON string
 	 */
@@ -33,9 +33,9 @@ class WPLBI_Comment extends WPLBI_Base {
 
 			$this->comment_id   = $comment->entry_id;
 
-			$this->author    = new WPLBI_Author( $comment->author );
+			$this->author    = new WPEI_Author( $comment->author );
 
-			$this->original_url = wplbi()->parse_url( $comment->link );
+			$this->original_url = wpei()->parse_url( $comment->link );
 
 			$this->_parse_ids( $comment->link );
 
@@ -54,7 +54,6 @@ class WPLBI_Comment extends WPLBI_Base {
 
 	/**
 	 * @param array $links
-	 * @return int[]
 	 */
 	private function _parse_ids( $links ) {
 		$comment_ids = null;
@@ -116,11 +115,11 @@ class WPLBI_Comment extends WPLBI_Base {
 			'comment_author_IP'    => '0.0.0.0 [Imported from Blogger]',
 			'comment_author_url'   => $this->author->url,
 			'comment_content'      => $this->content,
-			'comment_date'         => wplbi()->format_date( $this->published ),
-			'comment_date_gmt'     => wplbi()->format_date_gmt( $this->published ),
+			'comment_date'         => wpei()->format_date( $this->published ),
+			'comment_date_gmt'     => wpei()->format_date_gmt( $this->published ),
 			'comment_type'         => 'comment',
-			'user_id'              => wplbi()->author_uri() === $this->author->url
-				? wplbi()->default_author()
+			'user_id'              => wpei()->blogger_author_uri() === $this->author->url
+				? wpei()->default_author()
 				: 0,
 		);
 	}
@@ -134,7 +133,7 @@ class WPLBI_Comment extends WPLBI_Base {
 			echo sprintf( 'No post found matching %s.',  $this->blogger_id ) . "<br>\n";
 			$page_id = $this->page_id();
 			if ( 0 === $page_id ) {
-				$page_id = wplbi()->make_new_page( $this->blogger_id );
+				$page_id = wpei()->make_new_page( $this->blogger_id );
 			}
 			$this->post_id = $page_id;
 		}
