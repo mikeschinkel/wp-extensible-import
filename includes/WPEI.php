@@ -49,6 +49,16 @@ class WPEI {
 	private $_importer;
 
 	/**
+	 * @var WPEI_Importers
+	 */
+	private $_importers;
+
+	/**
+	 * @var
+	 */
+	private $_import_types = array();
+
+	/**
 	 * WPEI constructor.
 	 *
 	 * @param string $plugin_dir
@@ -64,14 +74,40 @@ class WPEI {
 		$this->_admin = new WPEI_Admin();
 		$this->_settings = WPEI_Settings::get_instance();
 
-		/**
-		 * @TODO Handle this with factory
-		 */
-		$this->_importer = WPEI_Blogger_Importer::get_instance();
+		$this->_importers = WPEI_Importers::get_instance();
 
 		add_action( 'admin_enqueue_scripts', array( $this, '_admin_enqueue_scripts' ) );
 		add_action( 'admin_print_styles', array( $this, '_admin_print_styles' ) );
 		add_action( 'load-tools_page_' . self::PAGE_NAME, array( $this, '_load_tools_page' ) );
+
+		$this->initialize_import_types();
+
+	}
+
+	/**
+	 * Returns array of importer class names indexed by import type slugs
+	 * @return object[] {
+	 *    @type string $class_name
+	 *    @type string $filepath
+	 * }
+	 */
+	function import_types() {
+
+		return $this->_importers->import_types();
+
+	}
+
+
+	/**
+	 * Reads /importers/ directory to find importers.
+	 *
+	 * Every direct subdirectory is an import type slug, and then the first class in the subdirectory
+	 * that extends WPEI_Importer_Base is the importer's class.
+	 *
+	 */
+	function initialize_import_types() {
+
+		$this->_importers->initialize_import_types( $this->plugin_dir );
 
 	}
 
@@ -202,19 +238,20 @@ class WPEI {
 		return $this->_settings->import_file_url;
 	}
 
-	/**
-	 * @return string
-	 */
-	function blogger_author_uri() {
-		return $this->_settings->blogger_author_url;
-	}
 
+	/**
+	 * @return WPEI_Importer_Base
+	 */
+	function importer() {
+		return $this->_importer;
+	}
 	/**
 	 * @return int
 	 */
 	function default_author() {
 		return $this->_settings->wp_author_id;
 	}
+
 
 	/**
 	 * @params string $date
@@ -395,8 +432,6 @@ SQL;
 	function admin() {
 		return $this->_admin;
 	}
-
-
 
 }
 

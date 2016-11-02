@@ -8,22 +8,22 @@ class WPEI_Settings extends WPEI_Base {
 	/**
 	 * @return string
 	 */
+	public $import_type_name;
+
+	/**
+	 * @return string
+	 */
 	public $import_file_url;
+
+	/**
+	 * @return array
+	 */
+	public $importer_args;
 
 	/**
 	 * @return int
 	 */
 	public $wp_author_id;
-
-	/**
-	 * @return string
-	 */
-	public $blogger_blog_url;
-
-	/**
-	 * @return string
-	 */
-	public $blogger_author_url;
 
 	/**
 	 * @return string
@@ -34,6 +34,39 @@ class WPEI_Settings extends WPEI_Base {
 	 * @var self
 	 */
 	private static $_instance;
+
+
+	/**
+	 * @param string $setting_name
+	 *
+	 * @return mixed|null
+	 */
+	function __get( $setting_name ) {
+
+		if ( property_exists( $this, $setting_name ) ) {
+			$value = $this->$setting_name;
+		} else if ( ! isset( $this->importer_args[ $setting_name ] ) ) {
+			$value = null;
+		} else {
+			$value = $this->importer_args[ $setting_name ];
+		}
+		return $value;
+
+	}
+
+	/**
+	 * @param string $setting_name
+	 * @param mixed $value
+	 */
+	function __set( $setting_name, $value ) {
+
+		if ( property_exists( $this, $setting_name ) ) {
+			$this->$setting_name = $value;
+		} else {
+			$this->importer_args[ $setting_name ] = $value;
+		}
+
+	}
 
 	/**
 	 * @param array|null $settings

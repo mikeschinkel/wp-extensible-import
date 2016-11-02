@@ -18,11 +18,18 @@ class WPEI_Importer_Base extends WPEI_Base {
 	private static $_instance;
 
 	/**
-	 * @param string $class_name
+	 * @return string
+	 */
+	static function IMPORTER_NAME() {
+		return str_replace( '_', ' ', get_class( __CLASS__ ) );
+	}
+
+	/**
+	 * @param string|null $class_name
 	 *
 	 * @return self
 	 */
-	static function get_instance( $class_name ) {
+	static function get_instance( $class_name = null ) {
 		if ( ! isset( self::$_instance ) ) {
 			self::$_instance = new $class_name();
 		}
@@ -33,6 +40,16 @@ class WPEI_Importer_Base extends WPEI_Base {
 	 * WPEI_Importer_Base constructor
 	 */
 	private function __construct() {
+	}
+
+	/**
+	 * @param string $setting
+	 * @return mixed|null
+	 */
+	function get_setting( $setting ) {
+		return isset( $this->settings[ $setting ] )
+			? $this->settings[ $setting ]
+			: null;
 	}
 
 	/**

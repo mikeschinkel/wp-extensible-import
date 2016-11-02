@@ -5,10 +5,14 @@
  */
 class WPEI_Blogger_Importer extends WPEI_Importer_Base {
 
+	static function IMPORTER_NAME() {
+		return __( 'Blogger Importer', 'wpei' );
+	}
+
 	/**
 	 * @return self
 	 */
-	static function get_instance() {
+	static function get_instance( $class_name = null ) {
 		return parent::get_instance( __CLASS__ );
 	}
 
@@ -34,7 +38,12 @@ class WPEI_Blogger_Importer extends WPEI_Importer_Base {
 	 * @param WPEI_Admin $admin
 	 */
 	function add_settings_fields( $admin ) {
-		$admin->add_settings_field( 'wp_author_id', __( 'Author for Posts:', 'wpei' ) );
+		switch ( $admin->wizard_page_name ) {
+			case 'info':
+				$admin->add_settings_field( 'wp_author_id', __( 'Author for Posts:', 'wpei' ) );
+				break;
+			default:
+		}
 	}
 
 	/**

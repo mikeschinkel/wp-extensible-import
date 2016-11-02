@@ -2,13 +2,27 @@
 
 /**
  * Class WPEI_Admin
+ *
  */
 class WPEI_Admin {
 
+	const WIZARD_PAGE_NAMES = array(
+		'file',
+		'validate',
+		'info',
+		'confirm',
+		'import'
+	);
+	
 	/**
 	 * @var WPEI_Settings
 	 */
 	private $_settings;
+
+	/**
+	 * @var string
+	 */
+	public $wizard_page_name;
 
 	/**
 	 */
@@ -22,6 +36,30 @@ class WPEI_Admin {
 		$this->_settings = WPEI_Settings::get_instance();
 
 		add_action( 'wp_ajax_verify_import', array( $this, '_wp_ajax_verify_import' ) );
+
+		$this->initialize_wizard_page_name();
+
+	}
+
+	/**
+	 *
+	 */
+	function get_prior_wizard_page_name() {
+		$position = array_search( $this->wizard_page_name, self::WIZARD_PAGE_NAMES );
+		if ( false === $position ) {
+			$position = 0;
+		}
+		return self::WIZARD_PAGE_NAMES[ $position ];
+	}
+
+	/**
+	 *
+	 */
+	function initialize_wizard_page_name() {
+		$wizard_page            = filter_input( INPUT_GET, 'wizard-page' );
+		$pages_regex            = implode( '|', self::WIZARD_PAGE_NAMES );
+		$wizard_page            = preg_replace( "#^.*?(|{$pages_regex}).*$#", '$1', $wizard_page );
+		$this->wizard_page_name = $wizard_page ? $wizard_page : self::WIZARD_PAGE_NAMES[0];
 	}
 
 	/**
@@ -150,20 +188,6 @@ class WPEI_Admin {
 	}
 
 
-//	/**
-//	 * @param array $types
-//	 * @return array
-//	 */
-//	function _wp_check_filetype_and_ext( $details, $filepath, $filename, $mime_types ) {
-//
-//		if ( 'xml' === strtolower( pathinfo($filename, PATHINFO_EXTENSION) ) ) {
-//			$details['ext'] =  'xml';
-//			$details['type'] =  'application/xml';
-//			$details['proper_filename'] =  $filename;
-//		}
-//		return $details;
-//	}
-//
 	function _admin_init() {
 
 		add_settings_section(
@@ -172,6 +196,8 @@ class WPEI_Admin {
 			array( $this, '_section_header' ),
 			WPEI::PAGE_NAME
 		);
+
+		$this->add_settings_field( 'import_type',  __( 'Type of Importer:', 'wpei' ) );
 
 		$this->add_settings_field( 'import_file_url',  __( 'URL of Import File:', 'wpei' ) );
 
@@ -284,5 +310,19 @@ class WPEI_Admin {
 	}
 
 
+//	/**
+//	 * @param array $types
+//	 * @return array
+//	 */
+//	function _wp_check_filetype_and_ext( $details, $filepath, $filename, $mime_types ) {
+//
+//		if ( 'xml' === strtolower( pathinfo($filename, PATHINFO_EXTENSION) ) ) {
+//			$details['ext'] =  'xml';
+//			$details['type'] =  'application/xml';
+//			$details['proper_filename'] =  $filename;
+//		}
+//		return $details;
+//	}
+//
 
 }
